@@ -1,0 +1,133 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container mt-3">
+    <form method="post" accept-charset="UTF-8" action="{{ path('add_teams') }}">
+		<div class="row">
+			<div class="col-md-8">
+				<div class="divTeam">
+					<div class="row">
+						<div class="col-4">
+							
+							<input class="form-control"  id="team" name="teamName" placeholder="Nom de l'Equipe">
+						</div>
+						<div class="col-8">
+							<button type="submit" class="btn btn-success" 
+							id="btnAddTeam">
+							<i class="fa fa-plus"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div id="demo">
+                <div class="container">
+                    {% for t in teams %}
+                        <table id="tabLstTeam" class="table">
+                            <thead>
+                                <tr class="drag" draggable="false" data-id="{{t.id}}">
+                                    <th>{{ t.name }}</th>
+                                    <th><a class="btn btn-danger btn-sm" href="{{path('delete_team',{id:t.id})}}"><i class="fa fa-trash"></i></a></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in t.team %}
+                                    <tr>
+                                        <td>{{ p.getFull() }}</td>
+                                        <td><a class="btn btn-danger btn-sm" href="{{ path('remove_personne',{personne:p.id, team:t.id}) }}"><i class="fa fa-trash"></i></a></td>
+                                    <tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endfor %}
+                </div>
+            </div>
+		</div>
+    </form>
+        <div class="col-md-4">
+            <form action="{{ path('add_personne') }}" method="POST">
+        
+                <div class="divUser">
+                    <div class="form-group">
+                        <input class="form-control" 
+                        placeholder="Prénom" type="text" id="prenom" name="prenom"/>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" 
+                        placeholder="Nom" type="text" id="nom" name="name"/>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" id="MyUserTeam" name="team">
+                            <option value="0">Pas d'Equipe</option>
+                            {% for team in teams %}
+                                <option value="{{team.id}}">{{ team.name }}</option>
+                            {% endfor %}		
+                        </select>
+                    </div>
+                    <div class="form-group text-center mb-0">
+                        <button type="submit" class="btn btn-success btn-lg " 
+                        id="btnAddUser">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+            </form>
+    	</div>
+		<div class="divListUser">
+            <table id="tabListUser">
+                <table id="tabLstTeam" class="table">
+                    <thead>
+                        <tr>
+                            <th>Personne</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in personnes %}
+                            <tr class="drag" draggable="true">
+                                <td>{{ p.getFull() }}</td>
+                                <td><a data-id="{{p.id}}" href="{{ path('delete_personne',{id:p.id}) }}" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+            </table>
+		</div>
+
+        <div id="dragOnject"></div>
+	</div>	<!-- col4 -->
+</div><!-- row -->
+
+</div><!-- container -->
+
+<script
+  src="https://code.jquery.com/jquery-3.6.0.min.js"
+  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+  crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    let objdrag = document.getElementById('dragOnject');
+    document.querySelectorAll(".drag").forEach(elt =>{
+        elt.style.cursor = "pointer";
+        elt.addEventListener('dragstart', event =>{
+            objdrag.innerHTML = "";
+            let clone = elt.cloneNode(true);
+            objdrag.appendChild(clone)
+            //event.preventDefault();
+        },false)
+        elt.addEventListener('dragover', event =>{
+           /* objdrag.style.position = "absolute";
+            objdrag.style.left = event.clientX+"px";
+            objdrag.style.top = event.clientY+"px";
+            console.log(objdrag)*/
+            event.preventDefault();
+        },false)
+        elt.addEventListener('drop', event =>{
+            console.log("ok")
+            let clone = objdrag.firstChild.cloneNode(true);
+            let pid = clone.children[1].children[0].dataset.id;
+            let tid = event.target.parentElement.dataset.id;
+            clone.children[1].children[0].href = "/k/tp_equipe/public/revP/"+pid+"/"+tid;
+            let table = event.target.parentElement.parentElement.parentElement.children[1].appendChild(clone);
+            axios.get("/k/tp_equipe/public/upd/"+pid+"/"+tid)
+            event.preventDefault();
+        },false)
+    })
+</script>
+{% endblock %}
